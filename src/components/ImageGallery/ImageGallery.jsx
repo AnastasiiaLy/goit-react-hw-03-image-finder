@@ -1,4 +1,6 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+
 import { ImageGalleryItem } from '../ImageGalleryItem/ImageGalleryItem';
 import { Modal } from '../Modal/Modal';
 import { ThreeDots } from 'react-loader-spinner';
@@ -7,67 +9,8 @@ import css from './ImageGallery.module.css';
 
 export default class ImageGallery extends Component {
   state = {
-    imagesArray: [],
-    page: 1,
-    imagesName: '',
-
     selectedImage: '',
     showModal: false,
-    hits: 0,
-    totalHits: 0,
-
-    error: null,
-    status: 'idle',
-  };
-
-  componentDidUpdate(prevProps, prevState) {
-    if (prevProps.imagesName !== this.props.imagesName) {
-      this.setState({
-        imagesArray: [],
-        page: 1,
-        imagesName: this.props.imagesName,
-        status: 'pending',
-      });
-
-      const KEY = '36895134-9b9dfb2f5d96a62d5aae70f5d';
-      const fecthBaseLink = 'https://pixabay.com/api/';
-
-      fetch(
-        `${fecthBaseLink}?q=${this.props.imagesName}&key=${KEY}&image_type=photo&orientation=horizontal&per_page=12&page=1`
-      )
-        .then(response => response.json())
-        .then(data =>
-          this.setState({
-            imagesArray: data.hits,
-            status: 'resolved',
-            hits: data.hits.length,
-            totalHits: data.totalHits,
-          })
-        )
-        .catch(error => this.setState({ error, status: 'rejected' }));
-    }
-  }
-
-  loadMoreImages = () => {
-    this.setState(
-      prevState => ({ page: prevState.page + 1 }),
-      () => {
-        const KEY = '36895134-9b9dfb2f5d96a62d5aae70f5d';
-        const fecthBaseLink = 'https://pixabay.com/api/';
-
-        fetch(
-          `${fecthBaseLink}?q=${this.props.imagesName}&key=${KEY}&image_type=photo&orientation=horizontal&per_page=12&page=${this.state.page}`
-        )
-          .then(response => response.json())
-          .then(data =>
-            this.setState(prevState => ({
-              imagesArray: [...prevState.imagesArray, ...data.hits],
-              hits: prevState.hits + data.hits.length,
-              totalHits: data.totalHits,
-            }))
-          );
-      }
-    );
   };
 
   openModal = selectedPic => {
@@ -84,29 +27,10 @@ export default class ImageGallery extends Component {
     });
   };
 
-  componentDidMount() {
-    document.addEventListener('keydown', this.handleKeyDown);
-  }
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeyDown);
-  }
-
-  handleKeyDown = event => {
-    if (event.key === 'Escape') {
-      this.onCloseModal();
-    }
-  };
-
   render() {
-    const {
-      imagesArray,
-      error,
-      status,
-      showModal,
-      selectedImage,
-      hits,
-      totalHits,
-    } = this.state;
+    const { imagesArray, error, status, hits, totalHits, onLoadMore } =
+      this.props;
+    const { selectedImage, showModal } = this.state;
 
     if (status === 'pending') {
       return <ThreeDots color="#ba90c6" wrapperClassName={css.loader} />;
@@ -137,7 +61,7 @@ export default class ImageGallery extends Component {
           {hits < totalHits && (
             <button
               type="button"
-              onClick={this.loadMoreImages}
+              onClick={onLoadMore}
               className={css.LoadMoreBtn}
             >
               Load More
@@ -150,6 +74,16 @@ export default class ImageGallery extends Component {
       );
     }
 
-    return <></>;
+    return null;
   }
 }
+
+ImageGallery.propTypes = {
+  imagesArray: PropTypes.arrayOf(PropTypes.object).isRequired,
+  error: PropTypes.object,
+  status: PropTypes.oneOf(['idle', 'pending', 'rejected', 'resolved'])
+    .isRequired,
+  hits: PropTypes.number.isRequired,
+  totalHits: PropTypes.number.isRequired,
+  onLoadMore: PropTypes.func.isRequired,
+};
