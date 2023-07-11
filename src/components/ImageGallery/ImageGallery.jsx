@@ -1,10 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-
 import { ImageGalleryItem } from '../ImageGalleryItem/ImageGalleryItem';
 import { Modal } from '../Modal/Modal';
 import { ThreeDots } from 'react-loader-spinner';
-
 import css from './ImageGallery.module.css';
 
 export default class ImageGallery extends Component {
@@ -33,11 +31,11 @@ export default class ImageGallery extends Component {
     const { selectedImage, showModal } = this.state;
 
     if (status === 'pending') {
-      return <ThreeDots color="#ba90c6" wrapperClassName={css.loader} />;
+      return <ThreeDots color="#ba90c6" className={css.loader} />;
     }
 
     if (status === 'rejected') {
-      return <h1>{error.message}</h1>;
+      return <h1>{error && error.message}</h1>;
     }
 
     if (status === 'resolved') {
@@ -58,6 +56,7 @@ export default class ImageGallery extends Component {
               closeModal={this.onCloseModal}
             />
           )}
+
           {hits < totalHits && (
             <button
               type="button"
@@ -67,8 +66,9 @@ export default class ImageGallery extends Component {
               Load More
             </button>
           )}
-          {hits === totalHits && (
-            <p className={css.noImagesNotify}>There are no images here</p>
+
+          {hits >= totalHits && imagesArray.length > 0 && (
+            <p className={css.noImagesNotify}>There are no more images</p>
           )}
         </>
       );

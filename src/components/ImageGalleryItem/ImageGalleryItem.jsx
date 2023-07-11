@@ -5,7 +5,6 @@ export const ImageGalleryItem = ({ image, onClick }) => {
   return (
     <li
       className={css.ImageGalleryItem}
-      key={image.id}
       onClick={() => onClick(image.largeImageURL)}
     >
       <img

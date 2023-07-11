@@ -14,44 +14,57 @@ export class App extends Component {
     status: 'idle',
   };
 
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      prevState.imagesName !== this.state.imagesName ||
+      prevState.page !== this.state.page
+    ) {
+      this.fetchImages();
+    }
+  }
+
   handleSearchSubmit = imagesName => {
-    this.setState(
-      {
-        imagesName,
-        imagesArray: [],
-        page: 1,
-        status: 'pending',
-      },
-      this.fetchImages
-    );
+    this.setState({
+      imagesName,
+      imagesArray: [],
+      hits: 0,
+      page: 1,
+      status: 'pending',
+    });
   };
 
   fetchImages = () => {
     const KEY = '36895134-9b9dfb2f5d96a62d5aae70f5d';
-    const fecthBaseLink = 'https://pixabay.com/api/';
+    const fetchBaseLink = 'https://pixabay.com/api/';
 
     const { imagesName, page } = this.state;
 
     fetch(
-      `${fecthBaseLink}?q=${imagesName}&key=${KEY}&image_type=photo&orientation=horizontal&per_page=12&page=${page}`
+      ` ${fetchBaseLink}?q=${imagesName}&page=${page}&key=${KEY}&image_type=photo&orientation=horizontal&per_page=12`
     )
       .then(response => response.json())
-      .then(data =>
-        this.setState(prevState => ({
-          imagesArray: [...prevState.imagesArray, ...data.hits],
-          hits: prevState.hits + data.hits.length,
-          totalHits: data.totalHits,
-          status: 'resolved',
-        }))
-      )
+      .then(data => {
+        // console.log(data.hits.length);
+        // console.log(data.totalHits);
+        // console.log(data.hits);
+
+        this.setState(
+          prevState => ({
+            imagesArray: [...prevState.imagesArray, ...data.hits],
+            hits: prevState.hits + data.hits.length,
+            totalHits: data.totalHits,
+            status: 'resolved',
+          }),
+          () => {
+            console.log(this.state.imagesArray.length);
+          }
+        );
+      })
       .catch(error => this.setState({ error, status: 'rejected' }));
   };
 
   loadMoreImages = () => {
-    this.setState(
-      prevState => ({ page: prevState.page + 1 }),
-      this.fetchImages
-    );
+    this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
   render() {
